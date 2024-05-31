@@ -194,7 +194,8 @@ module.exports = {
     [
       "*",
       [
-        ["=$user", ["get()", ["users", "$signer"]]],
+        ["=$signer64", ["toBase64()", ["$signer", "hex"]]],
+        ["=$user", ["get()", ["users", "$signer64"]]],
         ["=$isOwner", ["includes", "$signer", "$contract.owners"]],
         ["=$keys", ["keys", "$request.resource.data"]],
       ],
@@ -202,12 +203,12 @@ module.exports = {
     [
       "set:reg_owner",
       [
-        ["=$is_user_owner", ["equals", "$signer", "$id"]],
+        ["=$is_user_owner", ["equals", "$signer64", "$id"]],
         ["fields()", []],
         [
           "mod()",
           {
-            address: "$id",
+            address: "$signer",
             followers: 0,
             following: 0,
             invited_by: "$signer",
@@ -227,8 +228,10 @@ module.exports = {
     [
       "set:invite_user",
       [
-        ["fields()", []],
+        ["fields()", ["address"]],
         ["denyifany()", ["x$user"]],
+        ["=$addr64", ["toBase64()", ["$new.address"]]],
+        ["=$isIDAddress", ["equals", "$id", "$addr64"]],
         ["=$invited", ["defaultTo", 0, "$user.invited"]],
         ["=$invites", ["defaultTo", 0, "$user.invites"]],
         ["=$have_invites", ["gt", "$invites", "$invited"]],
@@ -236,13 +239,12 @@ module.exports = {
         [
           "mod()",
           {
-            address: "$id",
             followers: 0,
             following: 0,
             invited_by: "$signer",
           },
         ],
-        ["allowifall()", ["x$invited_user", "$have_invites"]],
+        ["allowifall()", ["x$invited_user", "$have_invites", "$isIDAddress"]],
       ],
     ],
     [
@@ -275,37 +277,64 @@ module.exports = {
           ["if", "$setHandle", ["o", ["equals", 0], ["length"], "$huser"]],
         ],
         ["=$handleOK", ["or", "!$setHandle", "$available"]],
-        ["=$is_user_signer", ["equals", "$signer", "$id"]],
+        ["=$is_user_signer", ["equals", "$signer64", "$id"]],
         ["allowifall()", ["$is_user_signer", "$handleOK"]],
       ],
     ],
   ],
   follows: [
-    [
-      "*",
-      [
-        ["split()", [":", "$id", ["=$from_id", "=$to_id"]]],
-        ["=$is_from_signer", ["equals", "$from_id", "$signer"]],
-        ["=$from", ["get()", ["users", "$from_id"]]],
-        ["=$to", ["get()", ["users", "$to_id"]]],
-        ["=$follow", ["get()", ["follows", "$id"]]],
-      ],
-    ],
+    ["*", [["=$follow", ["get()", ["follows", "$id"]]]]],
     [
       "set:follow",
       [
-        ["fields()", []],
+        ["fields()", ["from", "to"]],
+        [
+          "=$hash",
+          [
+            "hash()",
+            [
+              [
+                ["$new.from", "hex"],
+                ["$new.to", "hex"],
+              ],
+            ],
+          ],
+        ],
+        ["=$is_hash_id", ["equals", "$hash", "$id"]],
+        ["=$is_from_signer", ["equals", "$new.from", "$signer"]],
+        ["=$from64", ["toBase64()", ["$new.from"]]],
+        ["=$to64", ["toBase64()", ["$new.to"]]],
+        ["=$from", ["get()", ["users", "$from64"]]],
+        ["=$to", ["get()", ["users", "$to64"]]],
         ["denyifany()", ["x$from", "x$to", "o$follow"]],
-        ["mod()", { from: "$from_id", to: "$to_id", date: "$ms" }],
-        ["allowifall()", ["$is_from_signer"]],
+        ["mod()", { date: "$ms" }],
+        ["allowifall()", ["$is_from_signer", "$is_hash_id"]],
       ],
     ],
     [
       "delete:unfollow",
       [
         ["fields()", []],
+        [
+          "=$hash",
+          [
+            "hash()",
+            [
+              [
+                ["$old.from", "hex"],
+                ["$old.to", "hex"],
+              ],
+            ],
+          ],
+        ],
+        ["=$is_hash_id", ["equals", "$hash", "$id"]],
+        ["=$is_from_signer", ["equals", "$old.from", "$signer"]],
+        ["=$from64", ["toBase64()", ["$old.from"]]],
+        ["=$to64", ["toBase64()", ["$old.to"]]],
+        ["=$from", ["get()", ["users", "$from64"]]],
+        ["=$to", ["get()", ["users", "$to64"]]],
         ["denyifany()", ["x$from", "x$to", "x$follow"]],
-        ["allowifall()", ["$is_from_signer"]],
+        ["allowifall()", ["$is_from_signer", "$is_hash_id"]],
       ],
     ],
   ],
@@ -313,11 +342,13 @@ module.exports = {
     [
       "set:like",
       [
-        ["split()", [":", "$id", ["=$aid", "=$user"]]],
+        ["fields()", ["aid", "user"]],
+        ["=$hash", ["hash()", [["$new.aid", ["$new.user", "hex"]]]]],
+        ["=$is_hash_id", ["equals", "$hash", "$id"]],
         ["=$like", ["get()", ["likes", "$id"]]],
-        ["=$isOwner", ["equals", "$signer", "$user"]],
-        ["denyifany()", ["o$like", "!$isOwner"]],
-        ["mod()", { aid: "$aid", user: "$user", date: "$ms" }],
+        ["=$isOwner", ["equals", "$signer", "$new.user"]],
+        ["denyifany()", ["o$like", "!$isOwner", "!$is_hash_id"]],
+        ["mod()", { date: "$ms" }],
         ["allow()"],
       ],
     ],
