@@ -122,7 +122,18 @@ module.exports = {
         ],
         ["if", ["equals", "", "$aid"], ["break"]],
         ["=$post", ["get()", ["posts", "$aid"]]],
-        ["=$docid", ["join", ":", ["$data.after.owner", "$post.owner"]]],
+        [
+          "=$docid",
+          [
+            "hash()",
+            [
+              [
+                ["$data.after.owner", "hex"],
+                ["$post.owner", "hex"],
+              ],
+            ],
+          ],
+        ],
         ["=$following", ["get()", ["follows", "$docid"]]],
         [
           "if",
@@ -205,9 +216,22 @@ module.exports = {
       version: 2,
       on: "create",
       func: [
-        ["update()", [{ followers: db.inc(1) }, "users", "$data.after.to"]],
-        ["update()", [{ following: db.inc(1) }, "users", "$data.after.from"]],
-        ["=$docid", ["join", ":", ["$data.after.from", "$data.after.to"]]],
+        ["=$from64", ["toBase64()", ["$data.after.from"]]],
+        ["=$to64", ["toBase64()", ["$data.after.to"]]],
+        ["update()", [{ followers: db.inc(1) }, "users", "$to64"]],
+        ["update()", [{ following: db.inc(1) }, "users", "$from64"]],
+        [
+          "=$docid",
+          [
+            "hash()",
+            [
+              [
+                ["$data.after.from", "hex"],
+                ["$data.after.to", "hex"],
+              ],
+            ],
+          ],
+        ],
         ["update()", [{ last: db.ts() }, "follows", "$docid"]],
       ],
     },
@@ -216,8 +240,10 @@ module.exports = {
       version: 2,
       on: "delete",
       func: [
-        ["update()", [{ followers: db.inc(-1) }, "users", "$data.before.to"]],
-        ["update()", [{ following: db.inc(-1) }, "users", "$data.before.from"]],
+        ["=$from64", ["toBase64()", ["$data.before.from"]]],
+        ["=$to64", ["toBase64()", ["$data.before.to"]]],
+        ["update()", [{ followers: db.inc(-1) }, "users", "$to64"]],
+        ["update()", [{ following: db.inc(-1) }, "users", "$from64"]],
       ],
     },
   ],
@@ -275,10 +301,8 @@ module.exports = {
       version: 2,
       on: "create",
       func: [
-        [
-          "update()",
-          [{ invited: db.inc(1) }, "users", "$data.after.invited_by"],
-        ],
+        ["=$inviter64", ["toBase64()", ["$data.after.invited_by"]]],
+        ["update()", [{ invited: db.inc(1) }, "users", "$inviter64"]],
       ],
     },
   ],
