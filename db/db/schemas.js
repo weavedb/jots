@@ -3,7 +3,7 @@ module.exports = {
     type: "object",
     required: ["owner", "id"],
     properties: {
-      id: { type: "string", pattern: "^[0-9a-z]{32,32}$" },
+      id: { type: "string", pattern: "^[0-9a-zA-Z_=-]{24,24}$" },
       owner: { type: "string", pattern: "^[0-9a-zA-Z]{42,42}$" },
       date: { type: "number", multipleOf: 1 },
       updated: { type: "number", multipleOf: 1 },
@@ -16,7 +16,7 @@ module.exports = {
       quote: { type: "boolean" },
       parents: {
         type: "array",
-        items: { type: "string", pattern: "^[0-9a-zA-Z]{32,32}$" },
+        items: { type: "string", pattern: "^[0-9a-zA-Z_=-]{24,24}$" },
       },
       hashes: { type: "array", items: { type: "string" } },
       mentions: { type: "array", items: { type: "string" } },
@@ -54,7 +54,7 @@ module.exports = {
     properties: {
       date: { type: "number", multipleOf: 1 },
       rid: { type: "string" },
-      aid: { type: "string", pattern: "^[0-9a-z]{32,32}$" },
+      aid: { type: "string", pattern: "^[0-9a-zA-Z_=-]{24,24}$" },
       braodcast: {
         type: "array",
         items: { type: "string", pattern: "^[0-9a-zA-Z]{42,42}$" },
@@ -77,7 +77,7 @@ module.exports = {
     properties: {
       date: { type: "number", multipleOf: 1 },
       user: { type: "string", pattern: "^[0-9a-zA-Z]{42,42}$" },
-      aid: { type: "string", pattern: "^[0-9a-z]{32,32}$" },
+      aid: { type: "string", pattern: "^[0-9a-zA-Z_=-]{24,24}$" },
     },
   },
 }
