@@ -9,7 +9,7 @@
     "accounts": "node scripts/accounts.js",
     "deploy": "node scripts/deployAO.js",
     "setup": "node scripts/setup.js",
-    "init": "node scripts/initJots.js"
+    "initialize": "node scripts/initJots.js"
   },
   "dependencies": {
     "arweave": "^1.14.4",
