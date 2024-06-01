@@ -5,7 +5,7 @@ const { isNil } = require("ramda")
 let {
   _: [name],
   network,
-  owner,
+  owner_l2,
   user,
 } = require("yargs")(process.argv.slice(2)).parserConfiguration({
   "parse-numbers": false,
@@ -21,8 +21,8 @@ if (isNil(user)) {
   process.exit()
 }
 
-if (isNil(accounts.evm[owner])) {
-  console.error(`EVM owner not specified or found: ${owner} `)
+if (isNil(accounts.evm[owner_l2])) {
+  console.error(`EVM owner not specified or found: ${owner_l2} `)
   process.exit()
 }
 
@@ -36,7 +36,7 @@ if (isNil(rpc)) {
 }
 
 const main = async key => {
-  const auth = { privateKey: accounts.evm[owner].privateKey }
+  const auth = { privateKey: accounts.evm[owner_l2].privateKey }
   const _db = new SDK({ rpc: rpc.url, contractTxId: name })
   const { dbs } = await _db.node({ op: "stats" })
   let instance = null
@@ -53,14 +53,14 @@ const main = async key => {
     rpc: rpc.url,
     contractTxId: `${instance.contractTxId ?? name}`,
   })
-  const owner_addr = accounts.evm[owner].address.toLowerCase()
+  const owner_addr = accounts.evm[owner_l2].address.toLowerCase()
   await db.query("set:reg_owner", {}, "users", owner_addr, auth)
   await db.query(
     "update:give_invites",
     { invites: 100 },
     "users",
     owner_addr,
-    auth
+    auth,
   )
   await db.query("set:invite_user", {}, "users", user.toLowerCase(), auth)
   await db.query(
@@ -68,7 +68,7 @@ const main = async key => {
     { invites: 100 },
     "users",
     user.toLowerCase(),
-    auth
+    auth,
   )
 
   process.exit()
