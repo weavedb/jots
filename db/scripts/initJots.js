@@ -53,24 +53,30 @@ const main = async key => {
     rpc: rpc.url,
     contractTxId: `${instance.contractTxId ?? name}`,
   })
-  const owner_addr = accounts.evm[owner_l2].address.toLowerCase()
-  await db.query("set:reg_owner", {}, "users", owner_addr, auth)
+  const a64 = acc => db.toBase64([acc.toLowerCase()])
+  const owner = accounts.evm[owner_l2]
+  await db.query("set:reg_owner", {}, "users", a64(owner.address), auth)
   await db.query(
     "update:give_invites",
     { invites: 100 },
     "users",
-    owner_addr,
+    a64(owner.address),
     auth,
   )
-  await db.query("set:invite_user", {}, "users", user.toLowerCase(), auth)
+  await db.query(
+    "set:invite_user",
+    { address: user.toLowerCase() },
+    "users",
+    a64(user),
+    auth,
+  )
   await db.query(
     "update:give_invites",
     { invites: 100 },
     "users",
-    user.toLowerCase(),
+    a64(user),
     auth,
   )
-
   process.exit()
 }
 

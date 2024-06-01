@@ -77,7 +77,7 @@ Generate wallets.
 yarn keygen admin -t ar && yarn addFund admin
 yarn keygen scheduler -t ar && yarn addFund scheduler
 yarn keygen bundler -t ar && yarn addFund bundler
-yarn keygen rdk-admin
+yarn keygen rdk_admin
 ```
 
 Start WeaveDB AO units.
@@ -99,7 +99,7 @@ yarn addModule admin
 Set up the scheduler.
 
 ```bash
-yarn setScheduler scheduler --url "http://localhost:1994"
+yarn setScheduler scheduler --url "http://localhost:1993"
 ```
 
 Take notes of the `MODULE_ID` and the `SCHEDULER_ID` returned from these commands.
@@ -126,12 +126,13 @@ cd node/node-server && yarn
 
 Create a `weavedb.config.js` file.
 
-Copy the `privateKey` of `rdk-admin` at `cosmwasm-ao/.weavedb/accounts/evm/rdk-admin.json` from the previous step to the `admin` field.
+Copy the `privateKey` of `rdk_admin` at `cosmwasm-ao/.weavedb/accounts/evm/rdk_admin.json` from the previous step to the `admin` field.
 
 Copy the entire JSON object of `bundler` at `cosmwasm-ao/.weavedb/accounts/ar/bundler.json` from the previous step to the `bundler` field.
 
 ```javascript
 module.exports = {
+  dbname: "weavedb",
   admin: "0x...",
   bundler: { kty: "RSA", ... },
   rollups: {},
@@ -152,6 +153,13 @@ Start the node.
 node index.js
 ```
 
+In another terminal, start the WeaveDB Explorer.
+
+```bash
+cd rdk/exproler && yarn && yarn dev --port 3001
+```
+Now the explorer is running at [localhost:3001/node/localhost](http://localhost:3001/node/localhost).
+
 ### 4. Setting up WeaveDB Instance
 
 Clone the `weavedb/jots` repo, and install dependencies.
@@ -167,7 +175,33 @@ Generate necessary EVM wallets.
 yarn keygen owner_l1
 yarn keygen owner_l2
 yarn keygen relayer
-yarn keygen user
+```
+
+Create a `weavedb.config.js` file. Again, copy the `privateKey` from `rdk_admin`
+
+```javascript
+module.exports = {
+  db: {
+    app: "http://localhost:3000",
+    name: "Jots",
+    rollup: true,
+    plugins: { notifications: {} },
+    tick: 1000 * 60 * 5,
+  },
+  accounts: {
+    evm: {
+      admin: {
+        privateKey:
+          "0x...",
+      },
+    },
+    ar: {},
+  },
+  defaultNetwork: "localhost",
+  networks: {
+    localhost: { url: "localhost:8080", admin: "admin" },
+  },
+}
 ```
 
 Instantiate a WeaveDB instance for Jots.  
@@ -188,7 +222,7 @@ Initialize Jots with the genesis `user`.
 The genesis user will have 100 invites, that can be sent via the frontend dapp.
 
 ```bash
-yarn init jots --owner_l2 owner_l2 --user user
+yarn initialize jots --owner_l2 owner_l2 --user USER_EVM_ADDRESS
 ```
 
 ### 5. Start Frontend Jots Dapp
