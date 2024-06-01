@@ -227,10 +227,32 @@ yarn initialize jots --owner_l2 owner_l2 --user USER_EVM_ADDRESS
 
 ### 5. Start Frontend Jots Dapp
 
+Install dependencies.
+
 ```bash
-cd jots/app && yarn && yarn dev
+cd jots/app && yarn
 ```
 
+Create a `.env.local` file.
+
+```bash
+NEXT_PUBLIC_EXPLORER="http://localhost:3001/node/localhost/db/jots"
+NEXT_PUBLIC_RPC="http://localhost:8080"
+NEXT_PUBLIC_MODE="open"
+RPC="localhost:8080"
+NEXT_PUBLIC_TXID=""
+GCS_BUCKET="xyz.appspot.com"
+GCS_PROJECT_ID="xyz"
+GCS_EMAIL="firebase-adminsdk-ad5id@xyz.iam.gserviceaccount.com"
+GCS_PRIVATE_KEY=""
+RELAYER_PRIVATE_KEY="xyz"
+```
+
+Run the app.
+
+```bash
+yarn dev
+```
 Now `Jots` is running at [localhost3000](http://localhost:3000).
 
 ### 6. Deploy zkJSON Solidity Contract on Ethereum Testnet
