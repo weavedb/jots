@@ -7,7 +7,7 @@ const settings = require("./lib/settings")
 let {
   _: [name],
   network,
-  owner,
+  owner_l2,
   relayer,
   plugin,
 } = require("yargs")(process.argv.slice(2)).parserConfiguration({
@@ -19,8 +19,8 @@ if (isNil(name)) {
   process.exit()
 }
 
-if (isNil(accounts.evm[owner])) {
-  console.error(`EVM owner not specified or found: ${owner} `)
+if (isNil(accounts.evm[owner_l2])) {
+  console.error(`EVM L2 owner not specified or found: ${owner_l2} `)
   process.exit()
 }
 
@@ -66,7 +66,7 @@ const main = async key => {
   await setup({
     db,
     conf: settings(plugin),
-    privateKey: accounts.evm[owner]?.privateKey,
+    privateKey: accounts.evm[owner_l2]?.privateKey,
     relayer: accounts.evm[relayer]?.address?.toLowerCase() ?? null,
   })
   process.exit()
