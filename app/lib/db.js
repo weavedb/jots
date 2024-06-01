@@ -48,13 +48,13 @@ export const login = async () => {
 export const inviteUser = async ({ addr }) => {
   const { identity } = await lf.getItem("user")
   const _addr = addr.toLowerCase()
-  const _invite = {}
+  const _invite = { address: _addr }
   const { doc, success } = await db.query(
     "set:invite_user",
     _invite,
     "users",
-    _addr,
-    identity
+    db.toBase64([_addr]),
+    identity,
   )
   return { err: !success, doc }
 }
@@ -155,11 +155,11 @@ export const updateProfile = async ({
       "update:profile",
       user,
       "users",
-      address,
+      db.toBase64([address]),
       {
         ...identity,
         jobID: "profile",
-      }
+      },
     )
     let {
       tx: _tx,
@@ -176,7 +176,13 @@ export const updateProfile = async ({
     if (!isNil(_image)) __image = _image
     if (!isNil(_cover)) __cover = _cover
   } else {
-    tx = await db.query("update:profile", user, "users", address, identity)
+    tx = await db.query(
+      "update:profile",
+      user,
+      "users",
+      db.toBase64([address]),
+      identity,
+    )
   }
   if (tx.success) {
     if (!isNil(__image)) user.image = __image
@@ -199,13 +205,13 @@ export const logout = async () => {
 
 export const likePost = async ({ user, tweet }) => {
   const { identity } = await lf.getItem("user")
-  const like = {}
+  const like = { aid: tweet.id, user: user.address }
   await db.query(
     "set:like",
     like,
     "likes",
-    `${tweet.id}:${user.address}`,
-    identity
+    db.hash([[tweet.id, [user.address, "hex"]]]),
+    identity,
   )
   return { like }
 }
@@ -219,15 +225,25 @@ export const repostPost = async ({ user, tweet }) => {
 
 export const followUser = async ({ user, puser }) => {
   const { identity } = await lf.getItem("user")
-  const follow = {}
-  const id = `${user.address}:${puser.address}`
+  const follow = { from: user.address, to: puser.address }
+  const id = db.hash([
+    [
+      [user.address, "hex"],
+      [puser.address, "hex"],
+    ],
+  ])
   await db.query("set:follow", follow, "follows", id, identity)
   return { follow: { id, data: follow } }
 }
 
 export const unfollowUser = async ({ user, puser }) => {
   const { identity } = await lf.getItem("user")
-  const id = `${user.address}:${puser.address}`
+  const id = db.hash([
+    [
+      [user.address, "hex"],
+      [puser.address, "hex"],
+    ],
+  ])
   await db.query("delete:unfollow", "follows", id, identity)
   return { follow: { id, data: null } }
 }
@@ -297,7 +313,7 @@ export const getTweets = async ({ ids, tweets, setTweets }) => {
   __ids = uniq(concat(__ids, new_ids))
   if (!isEmpty(_ids)) {
     const _tweets = indexBy(prop("id"))(
-      await db.get("posts", ["id", "in", _ids])
+      await db.get("posts", ["id", "in", _ids]),
     )
     __tweets = mergeLeft(_tweets, __tweets)
   }
@@ -313,7 +329,7 @@ export const getUsers = async ({ ids, users, setUsers }) => {
   const _ids = difference(new_ids, __user_ids)
   if (!isEmpty(_ids)) {
     const _users = indexBy(prop("address"))(
-      await db.get("users", ["address", "in", _ids])
+      await db.get("users", ["address", "in", _ids]),
     )
     __users = mergeLeft(_users, __users)
   }
@@ -326,7 +342,7 @@ export const searchUsers = async (str, cb) => {
     "users",
     ["handle"],
     ["startAt", str.toLowerCase()],
-    5
+    5,
   )
   cb(users)
 }
