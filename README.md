@@ -156,7 +156,7 @@ node index.js
 In another terminal, start the WeaveDB Explorer.
 
 ```bash
-cd rdk/exproler && yarn && yarn dev --port 3001
+cd rdk/explorer && yarn && yarn dev --port 3001
 ```
 Now the explorer is running at [localhost:3001/node/localhost](http://localhost:3001/node/localhost).
 
@@ -168,14 +168,6 @@ Clone the `weavedb/jots` repo, and install dependencies.
 git clone https://github.com/weavedb/jots.git
 cd jots/db && yarn
  ```
-
-Generate necessary EVM wallets.
-
-```bash
-yarn keygen owner_l1
-yarn keygen owner_l2
-yarn keygen relayer
-```
 
 Create a `weavedb.config.js` file. Again, copy the `privateKey` from `rdk_admin`
 
@@ -202,6 +194,14 @@ module.exports = {
     localhost: { url: "localhost:8080", admin: "admin" },
   },
 }
+```
+
+Generate necessary EVM wallets.
+
+```bash
+yarn keygen owner_l1
+yarn keygen owner_l2
+yarn keygen relayer
 ```
 
 Instantiate a WeaveDB instance for Jots.  
