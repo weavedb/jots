@@ -216,6 +216,7 @@ Set up the Jots DB instance.
 
 ```bash
 yarn setup jots --owner_l2 owner_l2 --relayer relayer
+yarn setup jots --owner_l2 owner_l2 --relayer relayer --plugin notifications
 ```
 
 Initialize Jots with the genesis `user`.  
