@@ -77,7 +77,7 @@ const main = async () => {
     console.log(e.message)
   }
   if (config.db.rollup) {
-    console.log("let deploy contract", _module, scheduler)
+    console.log("deploying contract...", _module, scheduler)
     const tx = await db.admin(
       {
         op: "deploy_contract",

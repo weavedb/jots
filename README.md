@@ -47,7 +47,7 @@ At this point, you could run `aos`, but it's not necessary unless interacting wi
 ```bash
 cd ../aos && yarn && ./aos
 ```
-### 2. WeaveDB AO Units
+### 2. WeaveDB / CosmWasm AO Units
 
 Clone the `weavedb/cosmwasm-ao` repo, and install dependencies.
 
@@ -56,7 +56,7 @@ git clone https://github.com/weavedb/cosmwasm-ao.git
 cd cosmwasm-ao && yarn
 ```
 
-Create a `cwao.config.js` file.
+Create a `cwao.config.js` file,
 
 ```javascript
 module.exports = {
@@ -67,6 +67,23 @@ module.exports = {
     cus: { "http://localhost:1993": "http://localhost:1994" },
     arweave: { host: "localhost", port: 4000, protocol: "http" },
     graphql: "http://localhost:4000/graphql",
+	type: "weavedb"
+  }
+}
+```
+
+and `cwao.config.cosmwasm.js` file.
+
+```javascript
+module.exports = {
+  ao:{
+    mu: "http://localhost:1892",
+    su: "http://localhost:1893",
+    cu: "http://localhost:1894",
+    cus: { "http://localhost:1893": "http://localhost:1894" },
+    arweave: { host: "localhost", port: 4000, protocol: "http" },
+    graphql: "http://localhost:4000/graphql",
+	type: "cosmwasm"
   }
 }
 ```
@@ -76,6 +93,7 @@ Generate wallets.
 ```bash
 yarn keygen admin -t ar && yarn addFund admin
 yarn keygen scheduler -t ar && yarn addFund scheduler
+yarn keygen scheduler_cwao -t ar && yarn addFund scheduler_cwao
 yarn keygen bundler -t ar && yarn addFund bundler
 yarn keygen rdk_admin
 ```
@@ -87,22 +105,44 @@ yarn start admin
 ```
 
 - WeaveDB MU - [localhost:1992](http://localhost:1992)
-- WeaveDB SU - [localhost1993](http://localhost:1993)
+- WeaveDB SU - [localhost:1993](http://localhost:1993)
 - WeaveDB CU - [localhost:1994](http://localhost:1994)
+
+In another terminal, start CosmWasm AO units.
+
+```bash
+cd cosmwasm-ao && yarn start admin --config cwao.config.cosmwasm.js
+```
+
+- CosmWasm MU - [localhost:1892](http://localhost:1892)
+- CosmWasm SU - [localhost:1893](http://localhost:1893)
+- CosmWasm CU - [localhost:1894](http://localhost:1894)
 
 In another terminal, add the WeaveDB module to AO.
 
 ```bash
 yarn addModule admin
-
 ```
-Set up the scheduler.
+Add the CWAO20 module to AO.
+
+```bash
+yarn addModule admin --type cwao20 --config cwao.config.cosmwasm.js
+```
+Set up the schedulers.
 
 ```bash
 yarn setScheduler scheduler --url "http://localhost:1993"
+yarn setScheduler scheduler_cwao --url "http://localhost:1893"
 ```
 
 Take notes of the `MODULE_ID` and the `SCHEDULER_ID` returned from these commands.
+
+Deploy CWAO20 token.
+
+```bash
+yarn deployCWAO20 admin --config cwao.config.cosmwasm.js \
+--module MODULE_ID --scheduler SCHEDULER_ID --mint 10000
+```
 
 ### 3. WeaveDB Rollup Node
 
